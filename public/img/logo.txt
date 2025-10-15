@@ -1,0 +1,1 @@
+VelyStream logo - replace with public/img/logo.png
