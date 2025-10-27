@@ -1,5 +1,5 @@
 import { apiFetch } from '../utils/api';
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Download, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,13 @@ import NavigationBar from "@/components/NavigationBar";
 import Footer from "@/components/Footer";
 import { saveWatchHistory } from "@/lib/localStorage";
 import AnimeCard from "@/components/AnimeCard";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface AnimeDetail {
   mal_id: number;
@@ -27,15 +34,34 @@ interface AnimeDetail {
 }
 
 const WatchPage = () => {
-  const [videoSrc, setVideoSrc] = React.useState(\"\");
-  const [videoKey, setVideoKey] = React.useState(0);
-
   const { id, episode } = useParams();
   const navigate = useNavigate();
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [recommendedAnime, setRecommendedAnime] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const currentEp = parseInt(episode || "1");
+  const [sources, setSources] = useState<any[]>([]);
+  const [videoSrc, setVideoSrc] = React.useState("");
+  const [videoKey, setVideoKey] = React.useState(0);
+
+  const fetchVideoSource = async (ep: number) => {
+    if (!id) return;
+    try {
+      const response = await fetch(`https://api.consumet.org/meta/gogoanime/watch/${id}-episode-${ep}`);
+      const data = await response.json();
+      if (data.sources && data.sources.length > 0) {
+        setSources(data.sources);
+        const pick = data.sources.find(s => s.quality === 'default' || s.quality === 'auto') || data.sources[0];
+        setVideoSrc(pick.url);
+        setVideoKey(prevKey => prevKey + 1);
+      } else {
+        setVideoSrc('');
+      }
+    } catch (error) {
+      console.error("Error fetching video source:", error);
+      setVideoSrc('');
+    }
+  };
 
   useEffect(() => {
     fetchAnimeDetail();
@@ -43,6 +69,9 @@ const WatchPage = () => {
   }, [id]);
 
   useEffect(() => {
+    if (id) {
+      fetchVideoSource(currentEp);
+    }
     // Save to watch history when episode changes
     if (anime && id) {
       saveWatchHistory({
@@ -89,9 +118,14 @@ const WatchPage = () => {
     navigate(`/watch/${id}/${ep}`);
   };
 
+  const handleSourceChange = (url: string) => {
+    setVideoSrc(url);
+    setVideoKey(prevKey => prevKey + 1);
+  };
+
   const handleDownload = () => {
     // Video download functionality
-    const downloadUrl = videoUrl;
+    const downloadUrl = videoSrc;
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = `${anime?.title}-episode-${currentEp}.mp4`;
@@ -138,10 +172,7 @@ const WatchPage = () => {
 
   const episodes = generateEpisodes();
   
-  // Sankavollerei API integration (placeholder - requires anime slug)
-  // Format: https://www.sankavollerei.com/anime/episode/{anime-slug}-episode-{episode}-sub-indo
-  // For donghua: https://www.sankavollerei.com/anime/donghua/episode/{anime-slug}-episode-{episode}-subtitle-indonesia
-  const videoUrl = anime?.trailer?.embed_url || `https://www.youtube.com/embed/${anime?.trailer?.youtube_id}`;
+  const videoUrl = videoSrc;
 
   if (loading) {
     return (
@@ -183,6 +214,22 @@ const WatchPage = () => {
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               />
+            </div>
+
+            {/* Source Selector */}
+            <div className="mb-4">
+              <Select onValueChange={handleSourceChange} defaultValue={videoSrc}>
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Pilih sumber video" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sources.map((source, index) => (
+                    <SelectItem key={index} value={source.url}>
+                      {source.quality}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Video Info */}
