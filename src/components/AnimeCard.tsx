@@ -44,15 +44,15 @@ const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
         <div className="absolute inset-0 p-4 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-smooth">
           <div className="flex items-center gap-2 text-sm">
             {score > 0 && (
-              <div className="flex items-center gap-1 bg-primary/90 px-2 py-1 rounded">
-                <Star className="w-3 h-3 fill-current" />
-                <span className="font-bold">{score}</span>
+              <div className="flex items-center gap-1 bg-black/70 px-2 py-1 rounded backdrop-blur-sm">
+                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm font-bold">{score}</span>
               </div>
             )}
             {anime.episodes && (
               <div className="flex items-center gap-1 bg-secondary/90 px-2 py-1 rounded">
                 <Tv className="w-3 h-3" />
-                <span>{anime.episodes} Eps</span>
+                <span>{anime.episodes} Episode</span>
               </div>
             )}
           </div>
@@ -61,7 +61,7 @@ const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
         {/* Status Badge */}
         {anime.status === "Currently Airing" && (
           <Badge className="absolute top-2 right-2 bg-accent text-white border-0 animate-glow-pulse">
-            Tayang
+            UP
           </Badge>
         )}
 
@@ -71,13 +71,7 @@ const AnimeCard = ({ anime, showNewBadge = false }: AnimeCardProps) => {
           </Badge>
         )}
 
-        {/* Score Badge - Always Visible */}
-        {score > 0 && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 px-2 py-1 rounded backdrop-blur-sm">
-            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-bold">{score}</span>
-          </div>
-        )}
+
       </div>
 
       <h3 className="mt-3 font-semibold text-sm line-clamp-2 group-hover:text-primary transition-smooth">
